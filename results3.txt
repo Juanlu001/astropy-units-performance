@@ -1,0 +1,364 @@
+Wrote profile results to ex1.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 2.20948 s
+File: /home/juanlu/Development/Astropy/astropy-latest/astropy/units/core.py
+Function: __div__ at line 642
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   642                                               @profile
+   643                                               def __div__(self, m):
+   644     17044      19712.0      1.2      0.9          if isinstance(m, (bytes, str)):
+   645                                                       m = Unit(m)
+   646                                           
+   647     17044      15209.0      0.9      0.7          if isinstance(m, UnitBase):
+   648     17036      67103.0      3.9      3.0              if m.is_unity():
+   649         8          4.0      0.5      0.0                  return self
+   650     17028    2106619.0    123.7     95.3              return CompositeUnit(1, [self, m], [1, -1], _error_check=False)
+   651                                           
+   652         8          4.0      0.5      0.0          try:
+   653                                                       # Cannot handle this as Unit, re-try as Quantity
+   654         8         65.0      8.1      0.0              from .quantity import Quantity
+   655         8        767.0     95.9      0.0              return Quantity(1, self) / m
+   656                                                   except TypeError:
+   657                                                       return NotImplemented
+
+Total time: 0.00042 s
+File: /home/juanlu/Development/Astropy/astropy-latest/astropy/units/core.py
+Function: __rdiv__ at line 659
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   659                                               @profile
+   660                                               def __rdiv__(self, m):
+   661         2          4.0      2.0      1.0          if isinstance(m, (bytes, str)):
+   662                                                       return Unit(m) / self
+   663                                           
+   664         2          2.0      1.0      0.5          try:
+   665                                                       # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+   666                                                       # so we make it into one, fasttracking when it does not have a
+   667                                                       # unit, for the common case of <array> / <unit>.
+   668         2         14.0      7.0      3.3              from .quantity import Quantity
+   669         2          3.0      1.5      0.7              if hasattr(m, 'unit'):
+   670                                                           result = Quantity(m)
+   671                                                           result /= self
+   672                                                           return result
+   673                                                       else:
+   674         2        397.0    198.5     94.5                  return Quantity(m, self**(-1))
+   675                                                   except TypeError:
+   676                                                       return NotImplemented
+
+Total time: 0.025141 s
+File: /home/juanlu/Development/Astropy/astropy-latest/astropy/units/core.py
+Function: __mul__ at line 682
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   682                                               @profile
+   683                                               def __mul__(self, m):
+   684       106        118.0      1.1      0.5          if isinstance(m, (bytes, str)):
+   685                                                       m = Unit(m)
+   686                                           
+   687       106         97.0      0.9      0.4          if isinstance(m, UnitBase):
+   688       105       5083.0     48.4     20.2              if m.is_unity():
+   689         2          1.0      0.5      0.0                  return self
+   690       103       3499.0     34.0     13.9              elif self.is_unity():
+   691                                                           return m
+   692       103      16206.0    157.3     64.5              return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
+   693                                           
+   694                                                   # Cannot handle this as Unit, re-try as Quantity.
+   695         1          0.0      0.0      0.0          try:
+   696         1          6.0      6.0      0.0              from .quantity import Quantity
+   697         1        131.0    131.0      0.5              return Quantity(1, self) * m
+   698                                                   except TypeError:
+   699                                                       return NotImplemented
+
+Total time: 3.84493 s
+File: /home/juanlu/Development/Astropy/astropy-latest/astropy/units/core.py
+Function: __rmul__ at line 701
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   701                                               @profile
+   702                                               def __rmul__(self, m):
+   703     50183      48379.0      1.0      1.3          if isinstance(m, (bytes, str)):
+   704                                                       return Unit(m) * self
+   705                                           
+   706                                                   # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+   707                                                   # so we make it into one, fasttracking when it does not have a unit
+   708                                                   # for the common case of <array> * <unit>.
+   709     50183      23584.0      0.5      0.6          try:
+   710     50183     263399.0      5.2      6.9              from .quantity import Quantity
+   711     50183      48199.0      1.0      1.3              if hasattr(m, 'unit'):
+   712                                                           result = Quantity(m)
+   713                                                           result *= self
+   714                                                           return result
+   715                                                       else:
+   716     50183    3461374.0     69.0     90.0                  return Quantity(m, self)
+   717                                                   except TypeError:
+   718                                                       return NotImplemented
+
+Total time: 3.57877 s
+File: /home/juanlu/Development/Astropy/astropy-latest/astropy/units/core.py
+Function: __init__ at line 1973
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+  1973                                               @profile
+  1974                                               def __init__(self, scale, bases, powers, decompose=False,
+  1975                                                            decompose_bases=set(), _error_check=True):
+  1976                                                   # There are many cases internal to astropy.units where we
+  1977                                                   # already know that all the bases are Unit objects, and the
+  1978                                                   # powers have been validated.  In those cases, we can skip the
+  1979                                                   # error checking for performance reasons.  When the private
+  1980                                                   # kwarg `_error_check` is False, the error checking is turned
+  1981                                                   # off.
+  1982     36326      26457.0      0.7      0.7          if _error_check:
+  1983     17943      50968.0      2.8      1.4              scale = sanitize_scale(scale)
+  1984     35980      26226.0      0.7      0.7              for base in bases:
+  1985     18037      20082.0      1.1      0.6                  if not isinstance(base, UnitBase):
+  1986                                                               raise TypeError(
+  1987                                                                   "bases must be sequence of UnitBase instances")
+  1988     17943     138107.0      7.7      3.9              powers = [validate_power(p) for p in powers]
+  1989                                           
+  1990     36326      30257.0      0.8      0.8          self._scale = scale
+  1991     36326      24095.0      0.7      0.7          self._bases = bases
+  1992     36326      22189.0      0.6      0.6          self._powers = powers
+  1993     36326      24005.0      0.7      0.7          self._decomposed_cache = None
+  1994     36326    3191062.0     87.8     89.2          self._expand_and_gather(decompose=decompose, bases=decompose_bases)
+  1995     36326      25326.0      0.7      0.7          self._hash = None
+
+Total time: 2.13054 s
+File: /home/juanlu/Development/Astropy/astropy-latest/astropy/units/core.py
+Function: _expand_and_gather at line 2036
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+  2036                                               @profile
+  2037                                               def _expand_and_gather(self, decompose=False, bases=set()):
+  2038     36326      52120.0      1.4      2.4          def add_unit(unit, power, scale):
+  2039                                                       if unit not in bases:
+  2040                                                           for base in bases:
+  2041                                                               try:
+  2042                                                                   scale *= unit._to(base) ** power
+  2043                                                               except UnitsError:
+  2044                                                                   pass
+  2045                                                               else:
+  2046                                                                   unit = base
+  2047                                                                   break
+  2048                                           
+  2049                                                       if unit in new_parts:
+  2050                                                           a, b = resolve_fractions(new_parts[unit], power)
+  2051                                                           new_parts[unit] = a + b
+  2052                                                       else:
+  2053                                                           new_parts[unit] = power
+  2054                                                       return scale
+  2055                                           
+  2056     36326      43620.0      1.2      2.0          new_parts = {}
+  2057     36326      59479.0      1.6      2.8          scale = self.scale
+  2058                                           
+  2059     89876     156884.0      1.7      7.4          for b, p in zip(self.bases, self.powers):
+  2060     53550      61801.0      1.2      2.9              if decompose and b not in bases:
+  2061      1137       5042.0      4.4      0.2                  b = b.decompose(bases=bases)
+  2062                                           
+  2063     53550      75591.0      1.4      3.5              if isinstance(b, CompositeUnit):
+  2064     18086      29976.0      1.7      1.4                  scale *= b._scale ** p
+  2065     37606      53052.0      1.4      2.5                  for b_sub, p_sub in zip(b._bases, b._powers):
+  2066     19520     238173.0     12.2     11.2                      a, b = resolve_fractions(p_sub, p)
+  2067     19520     176757.0      9.1      8.3                      scale = add_unit(b_sub, a * b, scale)
+  2068                                                       else:
+  2069     35464     339663.0      9.6     15.9                  scale = add_unit(b, p, scale)
+  2070                                           
+  2071     36326     104073.0      2.9      4.9          new_parts = [x for x in new_parts.items() if x[1] != 0]
+  2072     36326     142750.0      3.9      6.7          new_parts.sort(key=lambda x: (-x[1], getattr(x[0], 'name', '')))
+  2073                                           
+  2074     36326      81356.0      2.2      3.8          self._bases = [x[0] for x in new_parts]
+  2075     36326     385510.0     10.6     18.1          self._powers = [validate_power(x[1]) for x in new_parts]
+  2076     36326     124693.0      3.4      5.9          self._scale = sanitize_scale(scale)
+
+Total time: 1.77434 s
+File: /home/juanlu/Development/Astropy/astropy-latest/astropy/units/quantity.py
+Function: __new__ at line 274
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   274                                               @profile
+   275                                               def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
+   276                                                           subok=False, ndmin=0):
+   277                                           
+   278     50384      66704.0      1.3      3.8          if unit is not None:
+   279                                                       # convert unit first, to avoid multiple string->unit conversions
+   280     50236     160257.0      3.2      9.0              unit = Unit(unit)
+   281                                                       # if we allow subclasses, allow a class from the unit.
+   282     50236      55314.0      1.1      3.1              if subok:
+   283                                                           qcls = getattr(unit, '_quantity_class', cls)
+   284                                                           if issubclass(qcls, cls):
+   285                                                               cls = qcls
+   286                                           
+   287                                                   # optimize speed for Quantity with no dtype given, copy=False
+   288     50384      76001.0      1.5      4.3          if isinstance(value, Quantity):
+   289       156        176.0      1.1      0.0              if unit is not None and unit is not value.unit:
+   290                                                           value = value.to(unit)
+   291                                                           # the above already makes a copy (with float dtype)
+   292                                                           copy = False
+   293                                           
+   294       156        187.0      1.2      0.0              if type(value) is not cls and not (subok and
+   295                                                                                          isinstance(value, cls)):
+   296        10        487.0     48.7      0.0                  value = value.view(cls)
+   297                                           
+   298       156        177.0      1.1      0.0              if dtype is None:
+   299       156        162.0      1.0      0.0                  if not copy:
+   300        20         37.0      1.9      0.0                      return value
+   301                                           
+   302       136        286.0      2.1      0.0                  if not np.can_cast(np.float32, value.dtype):
+   303                                                               dtype = float
+   304                                           
+   305       136        158.0      1.2      0.0              return np.array(value, dtype=dtype, copy=copy, order=order,
+   306       136       1346.0      9.9      0.1                              subok=True, ndmin=ndmin)
+   307                                           
+   308                                                   # Maybe str, or list/tuple of Quantity? If so, this may set value_unit.
+   309                                                   # To ensure array remains fast, we short-circuit it.
+   310     50228      55378.0      1.1      3.1          value_unit = None
+   311     50228      69304.0      1.4      3.9          if not isinstance(value, np.ndarray):
+   312     16794      21644.0      1.3      1.2              if isinstance(value, str):
+   313                                                           # The first part of the regex string matches any integer/float;
+   314                                                           # the second parts adds possible trailing .+-, which will break
+   315                                                           # the float function below and ensure things like 1.2.3deg
+   316                                                           # will not work.
+   317                                                           pattern = (r'\s*[+-]?'
+   318                                                                      r'((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|'
+   319                                                                      r'([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))'
+   320                                                                      r'([eE][+-]?\d+)?'
+   321                                                                      r'[.+-]?')
+   322                                           
+   323                                                           v = re.match(pattern, value)
+   324                                                           unit_string = None
+   325                                                           try:
+   326                                                               value = float(v.group())
+   327                                           
+   328                                                           except Exception:
+   329                                                               raise TypeError('Cannot parse "{0}" as a {1}. It does not '
+   330                                                                               'start with a number.'
+   331                                                                               .format(value, cls.__name__))
+   332                                           
+   333                                                           unit_string = v.string[v.end():].strip()
+   334                                                           if unit_string:
+   335                                                               value_unit = Unit(unit_string)
+   336                                                               if unit is None:
+   337                                                                   unit = value_unit  # signal no conversion needed below.
+   338                                           
+   339     16794      67854.0      4.0      3.8              elif (isiterable(value) and len(value) > 0 and
+   340         5         24.0      4.8      0.0                    all(isinstance(v, Quantity) for v in value)):
+   341                                                           # Convert all quantities to the same unit.
+   342                                                           if unit is None:
+   343                                                               unit = value[0].unit
+   344                                                           value = [q.to_value(unit) for q in value]
+   345                                                           value_unit = unit  # signal below that conversion has been done
+   346                                           
+   347     50228      60034.0      1.2      3.4          if value_unit is None:
+   348                                                       # If the value has a `unit` attribute and if not None
+   349                                                       # (for Columns with uninitialized unit), treat it like a quantity.
+   350     50228      83386.0      1.7      4.7              value_unit = getattr(value, 'unit', None)
+   351     50228      56406.0      1.1      3.2              if value_unit is None:
+   352                                                           # Default to dimensionless for no (initialized) unit attribute.
+   353     50228      58644.0      1.2      3.3                  if unit is None:
+   354         1          1.0      1.0      0.0                      unit = cls._default_unit
+   355     50228      56357.0      1.1      3.2                  value_unit = unit  # signal below that no conversion is needed
+   356                                                       else:
+   357                                                           try:
+   358                                                               value_unit = Unit(value_unit)
+   359                                                           except Exception as exc:
+   360                                                               raise TypeError("The unit attribute {0!r} of the input could "
+   361                                                                               "not be parsed as an astropy Unit, raising "
+   362                                                                               "the following exception:\n{1}"
+   363                                                                               .format(value.unit, exc))
+   364                                           
+   365                                                           if unit is None:
+   366                                                               unit = value_unit
+   367                                                           elif unit is not value_unit:
+   368                                                               copy = False  # copy will be made in conversion at end
+   369                                           
+   370     50228      63821.0      1.3      3.6          value = np.array(value, dtype=dtype, copy=copy, order=order,
+   371     50228     192424.0      3.8     10.8                           subok=False, ndmin=ndmin)
+   372                                           
+   373                                                   # check that array contains numbers or long int objects
+   374     50228      73888.0      1.5      4.2          if (value.dtype.kind in 'OSU' and
+   375                                                       not (value.dtype.kind == 'O' and
+   376                                                            isinstance(value.item(() if value.ndim == 0 else 0),
+   377                                                                       numbers.Number))):
+   378                                                       raise TypeError("The value must be a valid Python or "
+   379                                                                       "Numpy numeric type.")
+   380                                           
+   381                                                   # by default, cast any integer, boolean, etc., to float
+   382     50228     103985.0      2.1      5.9          if dtype is None and (not np.can_cast(np.float32, value.dtype)
+   383     50181      65685.0      1.3      3.7                                or value.dtype.kind == 'O'):
+   384        47        169.0      3.6      0.0              value = value.astype(float)
+   385                                           
+   386     50228     142300.0      2.8      8.0          value = value.view(cls)
+   387     50228     129337.0      2.6      7.3          value._set_unit(value_unit)
+   388     50228      60335.0      1.2      3.4          if unit is value_unit:
+   389     50228      52075.0      1.0      2.9              return value
+   390                                                   else:
+   391                                                       # here we had non-Quantity input that had a "unit" attribute
+   392                                                       # with a unit different from the desired one.  So, convert.
+   393                                                       return value.to(unit)
+
+Total time: 0.077754 s
+File: ex1.py
+Function: accel at line 15
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    15                                           @profile
+    16                                           def accel(t0, state, k):
+    17      8343       7842.0      0.9     10.1      v_vec = state[3:]
+    18      8343      39503.0      4.7     50.8      norm_v = (v_vec * v_vec).sum() ** .5
+    19      8343      30409.0      3.6     39.1      return 1e-5 * v_vec / norm_v
+
+Total time: 6.41642 s
+File: ex1.py
+Function: accel_slow at line 21
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    21                                           @profile
+    22                                           def accel_slow(t0, state, k):
+    23      8343      17198.0      2.1      0.3      r_vec, v_vec = state[:3], state[3:]
+    24      8343    3643257.0    436.7     56.8      _k = k * (u.km ** 3 / u.s ** 2)
+    25      8343      30847.0      3.7      0.5      body = Body(None, _k, "_Dummy")
+    26      8343     704041.0     84.4     11.0      _r = r_vec * u.km
+    27      8343    1824493.0    218.7     28.4      _v = v_vec * u.km / u.s
+    28      8343      36732.0      4.4      0.6      ss = RVState(body, _r, _v)
+    29      8343     100896.0     12.1      1.6      norm_v = (v_vec * v_vec).sum() ** .5
+    30      8343      58956.0      7.1      0.9      return 1e-5 * v_vec / norm_v
+
+Total time: 2.19298 s
+File: ex1.py
+Function: accel_so_so at line 36
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    36                                           @profile
+    37                                           def accel_so_so(t0, state, k):
+    38      8343      13464.0      1.6      0.6      r_vec, v_vec = state[:3], state[3:]
+    39      8343     724567.0     86.8     33.0      _k = k * km3s2
+    40      8343      23548.0      2.8      1.1      body = Body(None, _k, "_Dummy")
+    41      8343     652834.0     78.2     29.8      _r = r_vec * u.km
+    42      8343     634622.0     76.1     28.9      _v = v_vec * kms
+    43      8343      26793.0      3.2      1.2      ss = RVState(body, _r, _v)
+    44      8343      73371.0      8.8      3.3      norm_v = (v_vec * v_vec).sum() ** .5
+    45      8343      43785.0      5.2      2.0      return 1e-5 * v_vec / norm_v
+
+Total time: 9.20342 s
+File: ex1.py
+Function: main at line 49
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    49                                           @profile
+    50                                           def main():
+    51         1     187779.0 187779.0      2.0      initial.propagate(3 * u.day, method=cowell, ad=accel)
+    52         1    6643571.0 6643571.0     72.2      initial.propagate(3 * u.day, method=cowell, ad=accel_slow)
+    53         1    2372070.0 2372070.0     25.8      initial.propagate(3 * u.day, method=cowell, ad=accel_so_so)
+
